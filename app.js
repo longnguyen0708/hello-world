@@ -7,17 +7,15 @@ var app = express();
 app.use(express.bodyParser());
 app.use("/images", express.static(__dirname + '/images'));
 
-var page = function( req, res, url, payload, result ) {
+var page = function( req, res, url, result ) {
     body = fs.readFileSync('./page.html');
     res.setHeader('Content-Type', 'text/html');
     res.writeHead(200);
 
     console.log("url: " + url);
-    console.log("payload: " + payload);
     console.log("result: " + result);
         var html_body = "" + body ;
         var html_body = html_body.replace("{url}", url );
-       	var html_body = html_body.replace("{payload}", payload );            
 	var html_body = html_body.replace("{result}", result );  
 	res.end( html_body );
            
@@ -25,58 +23,27 @@ var page = function( req, res, url, payload, result ) {
 
 
 
-var doGet = function(req, res, url, payload) {
+var doGet = function(req, res, url) {
     var client = new Client();
             client.get( url,
                 function(data, response_raw) {
                     console.log( "data = \n" + JSON.stringify(data) ) ;
-		    page(req, res, url, payload, JSON.stringify(data));
+		    page(req, res, url, JSON.stringify(data));
                 }    
 		);
 }
 
-var doPut = function(req, res, url, payload) {
-    var client = new Client();
-	 var args = {
-                        data: payload,
-                        headers:{"Content-Type": "application/json"}
-                    };
-                    client.put( url, args,
-                        function(data, response_raw) {
-                            console.log(data);
-                            page( req, res, url, payload, data ) ;
-                        }
-                    );
-}
-
-var doDelete = function(req, res, url, payload) {
-    var client = new Client();
-            client.delete( url,
-                function(data, response_raw) {
-                    console.log( "data = \n" + JSON.stringify(data) ) ;
-                    page(req, res, url, "", data);
-                }   
-                );
-}
 
 var handle_post = function (req, res) {
     console.log( "Post: " + "Action: " +  req.body.event + "\n" ) ;
 
 	var url = "" + req.body.url ;
     	var action = "" + req.body.event ;
-	var payload = "" + req.body.payload ;
  	console.log("url: " + url);
-    console.log("payload: " + payload);
 
     if ( action == "Get Data" ) {
-    	doGet(req, res, url, payload);
+    	doGet(req, res, url);
     }
-    else if ( action == "Put Data" ) {
-    	doPut(req, res, url, payload);
-    } 
-    else if ( action == "Delete Data") {
-	doDelete(req, res, url, payload);
-    } 	
 }
 
 var handle_get = function (req, res) {
